@@ -17,8 +17,7 @@ Message<SimFrameworkCommand>* _allocateSimFrameworkCommand(std::shared_ptr<Messa
 	const U32 &bufferSize = 0, const bool &expectsResponse = false)
 {
 	Message<SimFrameworkCommand> *message = client->AllocateMessage(sizeof(SimFrameworkCommand) + bufferSize, expectsResponse);
-	SimFrameworkCommand *command = (SimFrameworkCommand*)message->_Payload;
-	command->_Code = code;
+	message->_Data._Code = code;
 	return message;
 }
 

@@ -17,7 +17,8 @@ class SimFrameworkCommand
 public:
     enum class Code
     {
-        Exit
+        Exit,
+        OtherCode
     };
 
 public:
