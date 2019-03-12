@@ -15,6 +15,7 @@ CustomProtocolCommand* CustomProtocolInterface::GetCommand()
     Message<CustomProtocolCommand>* msg = _MessageServer.Pop();
     if (msg)
     {
+        msg->_Data.MessageId = msg->Id();
         return &msg->_Data;
     }
 

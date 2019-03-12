@@ -17,8 +17,7 @@
 Message<SimFrameworkCommand>* allocateSimFrameworkCommand(std::shared_ptr<MessageClient<SimFrameworkCommand>> client, const SimFrameworkCommand::Code &code)
 {
     Message<SimFrameworkCommand> *message = client->AllocateMessage(sizeof(SimFrameworkCommand), false);
-    SimFrameworkCommand *command = (SimFrameworkCommand*)message->_Payload;
-    command->_Code = code;
+    message->_Data._Code = code;
     return message;
 }
 
@@ -26,8 +25,7 @@ Message<CustomProtocolCommand>* allocateCustomProtocolCommand(std::shared_ptr<Me
     const U32 &bufferSize = 0, const bool &expectsResponse = false)
 {
     Message<CustomProtocolCommand> *message = client->AllocateMessage(sizeof(CustomProtocolCommand) + bufferSize, expectsResponse);
-    CustomProtocolCommand *command = (CustomProtocolCommand*)message->_Payload;
-    command->Command = code;
+    message->_Data.Command = code;
     return message;
 }
 
@@ -245,8 +243,7 @@ TEST(SimFramework, Benchmark)
 
     // Request to load RomCode
     message = allocateCustomProtocolCommand(protocolClient, CustomProtocolCommand::Code::DownloadAndExecute, 0, true);
-    command = (CustomProtocolCommand*)message->_Payload;
-    memcpy(command->Payload.DownloadAndExecute.CodeName, ".\\TestCode.dll", sizeof(".\\TestCode.dll"));
+    memcpy(message->_Data.Payload.DownloadAndExecute.CodeName, ".\\TestCode.dll", sizeof(".\\TestCode.dll"));
     protocolClient->Push(message);
 
     //// Wait for response
@@ -258,6 +255,7 @@ TEST(SimFramework, Benchmark)
     message = protocolClient->PopResponse();
     command = &message->_Data;
     ASSERT_EQ(CustomProtocolCommand::Code::DownloadAndExecute, command->Command);
+    protocolClient->DeallocateMessage(message);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     // Start benchmark
@@ -288,6 +286,7 @@ TEST(SimFramework, Benchmark)
     ASSERT_EQ(loopCount, command->Payload.BenchmarkPayload.Response.NopCount);
 
     GOUT(loopCount << " NOPs took " << command->Payload.BenchmarkPayload.Response.Duration << " ms to process");
+    protocolClient->DeallocateMessage(message);
 
     std::shared_ptr<MessageClient<SimFrameworkCommand>> client = std::make_shared<MessageClient<SimFrameworkCommand>>(SSDSIM_IPC_NAME);
     Message<SimFrameworkCommand> *simMessage = allocateSimFrameworkCommand(client, SimFrameworkCommand::Code::Exit);
